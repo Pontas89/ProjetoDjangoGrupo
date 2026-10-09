@@ -9,6 +9,7 @@ class Produto(models.Model):
     preco_custo = models.DecimalField(max_digits=10, decimal_places=2)
     margem_lucro = models.DecimalField(max_digits=5, decimal_places=2)
     preco_venda = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    estoque_atual = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
         # 1. Pegar a margem (ex: 30%) e transformar em número decimal (0.30)

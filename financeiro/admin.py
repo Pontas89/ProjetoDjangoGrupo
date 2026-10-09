@@ -5,7 +5,7 @@ from .models import Produto, Venda
 
 @admin.register(Produto)
 class ProdutoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'preco_custo', 'margem_lucro', 'preco_venda')
+    list_display = ('nome', 'preco_custo', 'margem_lucro', 'preco_venda', 'estoque_atual')
     readonly_fields = ('preco_venda',)
 
 @admin.register(Venda)
