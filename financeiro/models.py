@@ -1,5 +1,6 @@
 from django.db import models
 from decimal import Decimal
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 
@@ -26,6 +27,13 @@ class Venda(models.Model):
     lucro_venda = models.DecimalField(max_digits=10, decimal_places=2, blank=True)
 
     def save(self, *args, **kwargs):
+        # TRAVA DE ESTOQUE:
+        if self.quantidade > self.produto.estoque_atual:
+            raise ValidationError(
+                f"Estoque insuficiente! Você tentou vender {self.quantidade} unidades, "
+                f"mas o produto '{self.produto.nome}' só tem {self.produto.estoque_atual} em estoque."
+            )
+
         # 1. Primeiro, calculamos o valor bruto da venda (sem desconto nenhum)
         valor_bruto = self.quantidade * self.produto.preco_venda
 
@@ -49,7 +57,14 @@ class Venda(models.Model):
         custo_total = self.quantidade * self.produto.preco_custo
         self.lucro_venda = self.total_venda - custo_total
 
+        # Deduz a quantidade de vendida do estoque do produto
+        self.produto.estoque_atual -= self.quantidade
+        self.produto.save() # Salva o novo estoque na tabela de Produtos 
+
         # 7. Salvamos no banco
         super().save(*args, **kwargs)
+
+        def __str__(self):
+            return f"Venda #{self.id} - {self.produto.nome}"
 
         
