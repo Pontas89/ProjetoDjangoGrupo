@@ -1,4 +1,5 @@
 from django.db import models
+from decimal import Decimal
 
 # Create your models here.
 
@@ -25,16 +26,30 @@ class Venda(models.Model):
     lucro_venda = models.DecimalField(max_digits=10, decimal_places=2, blank=True)
 
     def save(self, *args, **kwargs):
-        # 1. Multiplica a quantidade digitada pelo preço de venda do produto vinculado
-        self.total_venda = self.quantidade * self.produto.preco_venda
+        # 1. Primeiro, calculamos o valor bruto da venda (sem desconto nenhum)
+        valor_bruto = self.quantidade * self.produto.preco_venda
 
-        # 2. Calcula o custo total daqueles itens para a loja
+        # 2. Criamos uma variável para guardar a porcentagem de desconto
+        desconto_percentual = 0
+
+        # 3. Aplicamos a regra de quantidade usando IF e ELIF
+        if self.quantidade >= 10:
+            desconto_percentual = 10 # 10% de desconto
+        elif self.quantidade >= 5:
+            desconto_percentual = 5 # 5% de desconto
+
+        # 4. Calculamos o valor do desconto em dinheiro
+        # Ex: se o bruto for 100 reais e o descoto for 5%, da 5 reais
+        valor_do_desconto = valor_bruto * Decimal(desconto_percentual / 100)
+
+        # 5. O total da venda agora será o valor bruto menos o desconto calculado
+        self.total_venda = valor_bruto - valor_do_desconto
+
+        # 6.Calculamos o lucro real tirando o custo do produto 
         custo_total = self.quantidade * self.produto.preco_custo
-
-        # 3. Calcula o lucro líquido (O total que entrou menos o que os produtos custaram)
         self.lucro_venda = self.total_venda - custo_total
 
-        # 4. Finaliza salvando no banco
+        # 7. Salvamos no banco
         super().save(*args, **kwargs)
 
         
